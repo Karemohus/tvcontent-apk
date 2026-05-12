@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -28,6 +30,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,11 +43,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "TVContentPrefs";
     private static final String KEY_SERVER_URL = "server_url";
     private static final String DEFAULT_URL = "https://aljabr.duckdns.org/display";
-    private static final String SECRET_CODE = "9999"; // For accessing settings
+    private static final String SECRET_CODE = "9999";
 
     private WebView webView;
     private TextView statusText;
     private LinearLayout splashLayout;
+    private FrameLayout customViewContainer;
+    private View customView;
+    private WebChromeClient.CustomViewCallback customViewCallback;
     private PowerManager.WakeLock wakeLock;
     private Handler retryHandler = new Handler(Looper.getMainLooper());
     private int settingsTaps = 0;
@@ -55,12 +61,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
-        // Wake lock to prevent CPU sleep
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         if (pm != null) {
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TVContent::WakeLock");
@@ -72,12 +77,13 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webview);
         statusText = findViewById(R.id.status_text);
         splashLayout = findViewById(R.id.splash_layout);
+        customViewContainer = findViewById(R.id.custom_view_container);
 
-        // Hidden settings tap (10 taps on logo)
         findViewById(R.id.app_logo).setOnClickListener(v -> handleSettingsTap());
 
         setupWebView();
         loadServerUrl();
+        hideSystemUI();
     }
 
     private void hideSystemUI() {
@@ -116,9 +122,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " TVContent/1.0.0 Android");
+        settings.setUserAgentString(settings.getUserAgentString() + " TVContent/1.1.0 Android");
 
-        // Enable hardware acceleration
+        webView.setBackgroundColor(Color.BLACK);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         webView.setWebViewClient(new WebViewClient() {
@@ -133,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
                 hideSplash();
                 hideSystemUI();
+                injectFullscreenCSS(view);
             }
 
             @Override
@@ -160,7 +167,80 @@ public class MainActivity extends AppCompatActivity {
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                 callback.invoke(origin, true, false);
             }
+
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                if (customView != null) {
+                    callback.onCustomViewHidden();
+                    return;
+                }
+                customView = view;
+                customViewCallback = callback;
+                webView.setVisibility(View.GONE);
+                customViewContainer.setVisibility(View.VISIBLE);
+                customViewContainer.addView(view, new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+                hideSystemUI();
+            }
+
+            @Override
+            public void onHideCustomView() {
+                if (customView == null) return;
+                customViewContainer.removeView(customView);
+                customViewContainer.setVisibility(View.GONE);
+                customView = null;
+                if (customViewCallback != null) {
+                    customViewCallback.onCustomViewHidden();
+                    customViewCallback = null;
+                }
+                webView.setVisibility(View.VISIBLE);
+                hideSystemUI();
+            }
         });
+    }
+
+    private void injectFullscreenCSS(WebView view) {
+        String js = 
+            "(function(){" +
+            "  var style = document.createElement('style');" +
+            "  style.innerHTML = '" +
+            "    html, body { margin: 0 !important; padding: 0 !important; background: #000 !important; overflow: hidden !important; width: 100vw !important; height: 100vh !important; }" +
+            "    body * { cursor: none !important; }" +
+            "    video { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; object-fit: cover !important; background: #000 !important; z-index: 999998 !important; }" +
+            "    img.media-item, .display-media img, [class*=\"display\"] img { width: 100vw !important; height: 100vh !important; object-fit: cover !important; }" +
+            "    .fullscreen-btn, .fs-btn, [data-action=\"fullscreen\"], button[onclick*=\"fullscreen\"] { display: none !important; }" +
+            "  ';" +
+            "  document.head.appendChild(style);" +
+            "  function setupVideos() {" +
+            "    document.querySelectorAll('video').forEach(function(v) {" +
+            "      v.setAttribute('playsinline', 'true');" +
+            "      v.setAttribute('webkit-playsinline', 'true');" +
+            "      v.setAttribute('x5-playsinline', 'true');" +
+            "      v.style.objectFit = 'cover';" +
+            "      v.style.width = '100vw';" +
+            "      v.style.height = '100vh';" +
+            "      v.style.position = 'fixed';" +
+            "      v.style.top = '0';" +
+            "      v.style.left = '0';" +
+            "      v.style.background = '#000';" +
+            "      if (v.paused) v.play().catch(function(){});" +
+            "    });" +
+            "  }" +
+            "  setupVideos();" +
+            "  var observer = new MutationObserver(function(mutations) {" +
+            "    setupVideos();" +
+            "  });" +
+            "  observer.observe(document.body, { childList: true, subtree: true });" +
+            "  if (Element.prototype.requestFullscreen) {" +
+            "    Element.prototype.requestFullscreen = function() { return Promise.resolve(); };" +
+            "  }" +
+            "  if (Element.prototype.webkitRequestFullscreen) {" +
+            "    Element.prototype.webkitRequestFullscreen = function() {};" +
+            "  }" +
+            "})();";
+
+        view.evaluateJavascript(js, null);
     }
 
     private void loadServerUrl() {
@@ -213,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSettingsDialog() {
         EditText pinInput = new EditText(this);
-        pinInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | 
+        pinInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER |
                               android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         pinInput.setHint("PIN");
 
@@ -257,11 +337,9 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Block Back button (Kiosk Mode)
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            // Block - app should not exit on back press
             return true;
         }
         return super.onKeyDown(keyCode, event);
