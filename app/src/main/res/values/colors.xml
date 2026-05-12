@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bgBase">#0a0908</color>
+    <color name="bgSoft">#141210</color>
+    <color name="bgCard">#1c1916</color>
+    <color name="border">#2a2622</color>
+    <color name="accent">#d4a574</color>
+    <color name="accentBright">#e8c590</color>
+    <color name="accentDim">#8b6f4d</color>
+    <color name="ink">#f5f1ea</color>
+    <color name="ink2">#c9c0b3</color>
+    <color name="ink3">#8a8378</color>
+    <color name="success">#6b9a6e</color>
+</resources>

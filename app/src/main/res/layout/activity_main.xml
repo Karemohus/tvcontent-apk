@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bgBase">
+
+    <!-- WebView (main content) -->
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Splash Screen -->
+    <LinearLayout
+        android:id="@+id/splash_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/bgBase"
+        android:padding="40dp">
+
+        <!-- Logo -->
+        <TextView
+            android:id="@+id/app_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:background="@drawable/logo_bg"
+            android:text="T"
+            android:textColor="@color/bgBase"
+            android:textSize="80sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- App Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TV Content"
+            android:textColor="@color/accent"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Tagline -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Digital Signage System"
+            android:textColor="@color/ink2"
+            android:textSize="14sp"
+            android:letterSpacing="0.2"
+            android:layout_marginBottom="40dp" />
+
+        <!-- Status text -->
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="جاري الاتصال بالخادم..."
+            android:textColor="@color/ink2"
+            android:textSize="16sp" />
+
+        <!-- Loading indicator -->
+        <ProgressBar
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="24dp"
+            android:indeterminateTint="@color/accent" />
+
+    </LinearLayout>
+
+</FrameLayout>
