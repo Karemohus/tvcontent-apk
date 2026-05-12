@@ -201,47 +201,65 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void injectFullscreenCSS(WebView view) {
-        String js = 
-            "(function(){" +
-            "  var style = document.createElement('style');" +
-            "  style.innerHTML = '" +
-            "    html, body { margin: 0 !important; padding: 0 !important; background: #000 !important; overflow: hidden !important; width: 100vw !important; height: 100vh !important; }" +
-            "    body * { cursor: none !important; }" +
-            "    video { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; object-fit: cover !important; background: #000 !important; z-index: 999998 !important; }" +
-            "    img.media-item, .display-media img, [class*=\"display\"] img { width: 100vw !important; height: 100vh !important; object-fit: cover !important; }" +
-            "    .fullscreen-btn, .fs-btn, [data-action=\"fullscreen\"], button[onclick*=\"fullscreen\"] { display: none !important; }" +
-            "  ';" +
-            "  document.head.appendChild(style);" +
-            "  function setupVideos() {" +
-            "    document.querySelectorAll('video').forEach(function(v) {" +
-            "      v.setAttribute('playsinline', 'true');" +
-            "      v.setAttribute('webkit-playsinline', 'true');" +
-            "      v.setAttribute('x5-playsinline', 'true');" +
-            "      v.style.objectFit = 'cover';" +
-            "      v.style.width = '100vw';" +
-            "      v.style.height = '100vh';" +
-            "      v.style.position = 'fixed';" +
-            "      v.style.top = '0';" +
-            "      v.style.left = '0';" +
-            "      v.style.background = '#000';" +
-            "      if (v.paused) v.play().catch(function(){});" +
-            "    });" +
-            "  }" +
-            "  setupVideos();" +
-            "  var observer = new MutationObserver(function(mutations) {" +
-            "    setupVideos();" +
-            "  });" +
-            "  observer.observe(document.body, { childList: true, subtree: true });" +
-            "  if (Element.prototype.requestFullscreen) {" +
-            "    Element.prototype.requestFullscreen = function() { return Promise.resolve(); };" +
-            "  }" +
-            "  if (Element.prototype.webkitRequestFullscreen) {" +
-            "    Element.prototype.webkitRequestFullscreen = function() {};" +
-            "  }" +
-            "})();";
+    String js = 
+        "(function(){" +
+        "  var style = document.createElement('style');" +
+        "  style.innerHTML = '" +
+        "    html, body { margin: 0 !important; padding: 0 !important; background: #000 !important; overflow: hidden !important; width: 100vw !important; height: 100vh !important; }" +
+        "    body * { cursor: none !important; }" +
+        "    video { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; object-fit: cover !important; background: #000 !important; z-index: 999998 !important; }" +
+        "    video::-webkit-media-controls { display: none !important; -webkit-appearance: none !important; }" +
+        "    video::-webkit-media-controls-enclosure { display: none !important; }" +
+        "    video::-webkit-media-controls-panel { display: none !important; }" +
+        "    video::-webkit-media-controls-fullscreen-button { display: none !important; }" +
+        "    video::-webkit-media-controls-play-button { display: none !important; }" +
+        "    video::-webkit-media-controls-start-playback-button { display: none !important; }" +
+        "    video::-webkit-media-controls-overlay-play-button { display: none !important; }" +
+        "    video::-webkit-media-controls-timeline { display: none !important; }" +
+        "    video::-webkit-media-controls-current-time-display { display: none !important; }" +
+        "    video::-webkit-media-controls-time-remaining-display { display: none !important; }" +
+        "    video::-webkit-media-controls-mute-button { display: none !important; }" +
+        "    video::-webkit-media-controls-volume-slider { display: none !important; }" +
+        "    img.media-item, .display-media img, [class*=\"display\"] img { width: 100vw !important; height: 100vh !important; object-fit: cover !important; }" +
+        "    .fullscreen-btn, .fs-btn, [data-action=\"fullscreen\"], button[onclick*=\"fullscreen\"] { display: none !important; }" +
+        "  ';" +
+        "  document.head.appendChild(style);" +
+        "  function setupVideos() {" +
+        "    document.querySelectorAll('video').forEach(function(v) {" +
+        "      v.removeAttribute('controls');" +
+        "      v.controls = false;" +
+        "      v.setAttribute('playsinline', 'true');" +
+        "      v.setAttribute('webkit-playsinline', 'true');" +
+        "      v.setAttribute('x5-playsinline', 'true');" +
+        "      v.disablePictureInPicture = true;" +
+        "      v.controlsList = 'nodownload nofullscreen noremoteplayback';" +
+        "      v.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');" +
+        "      v.style.objectFit = 'cover';" +
+        "      v.style.width = '100vw';" +
+        "      v.style.height = '100vh';" +
+        "      v.style.position = 'fixed';" +
+        "      v.style.top = '0';" +
+        "      v.style.left = '0';" +
+        "      v.style.background = '#000';" +
+        "      v.style.pointerEvents = 'none';" +
+        "      if (v.paused) v.play().catch(function(){});" +
+        "    });" +
+        "  }" +
+        "  setupVideos();" +
+        "  var observer = new MutationObserver(function(mutations) {" +
+        "    setupVideos();" +
+        "  });" +
+        "  observer.observe(document.body, { childList: true, subtree: true });" +
+        "  if (Element.prototype.requestFullscreen) {" +
+        "    Element.prototype.requestFullscreen = function() { return Promise.resolve(); };" +
+        "  }" +
+        "  if (Element.prototype.webkitRequestFullscreen) {" +
+        "    Element.prototype.webkitRequestFullscreen = function() {};" +
+        "  }" +
+        "})();";
 
-        view.evaluateJavascript(js, null);
-    }
+    view.evaluateJavascript(js, null);
+}
 
     private void loadServerUrl() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
