@@ -4,14 +4,20 @@
     android:layout_height="match_parent"
     android:background="@color/bgBase">
 
-    <!-- WebView (main content) -->
     <WebView
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:background="#000000" />
 
-    <!-- Splash Screen -->
+    <FrameLayout
+        android:id="@+id/custom_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#000000" />
+
     <LinearLayout
         android:id="@+id/splash_layout"
         android:layout_width="match_parent"
@@ -21,7 +27,6 @@
         android:background="@color/bgBase"
         android:padding="40dp">
 
-        <!-- Logo -->
         <TextView
             android:id="@+id/app_logo"
             android:layout_width="120dp"
@@ -34,7 +39,6 @@
             android:gravity="center"
             android:layout_marginBottom="24dp" />
 
-        <!-- App Name -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -44,7 +48,6 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <!-- Tagline -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,7 +57,6 @@
             android:letterSpacing="0.2"
             android:layout_marginBottom="40dp" />
 
-        <!-- Status text -->
         <TextView
             android:id="@+id/status_text"
             android:layout_width="wrap_content"
@@ -63,7 +65,6 @@
             android:textColor="@color/ink2"
             android:textSize="16sp" />
 
-        <!-- Loading indicator -->
         <ProgressBar
             android:layout_width="40dp"
             android:layout_height="40dp"
