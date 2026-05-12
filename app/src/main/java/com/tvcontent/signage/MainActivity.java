@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "TVContent";
     private static final String PREFS_NAME = "TVContentPrefs";
     private static final String KEY_SERVER_URL = "server_url";
-    private static final String DEFAULT_URL = "https://aljabr.duckdns.org/";
+    private static final String DEFAULT_URL = "https://aljabr.duckdns.org/display";
     private static final String SECRET_CODE = "9999"; // For accessing settings
 
     private WebView webView;
